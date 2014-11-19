@@ -89,7 +89,7 @@ void shr_big_int(bigNum sbig, bigNum dbig)
 
 }
 
-void copy(bigNum sbig, bigNum dbig)
+void copy(const bigNum sbig, bigNum dbig)
 {
 	int i;
 	for(i = 0; i < BIG_LENGTH; i++)
@@ -139,7 +139,7 @@ int cmp_big_int(const bigNum num1, const bigNum num2)
 
 }
 
-int muti_big_int(bigNum beMuted, bigNum theMut, bigNum result)
+int muti_big_int(const bigNum beMuted, const bigNum theMut, bigNum result)
 {
 	bigNum pos1, pos2, tmp,tmp2;
 	init_big_int(tmp,0);
@@ -199,8 +199,86 @@ int muti_big_int(bigNum beMuted, bigNum theMut, bigNum result)
 	return 0;
 }
 
-int div_big_int(bigNum deDived, bigNum theDiv, bigNum reslut)
+int div_big_int(const bigNum deDived,const bigNum theDiv, bigNum result,bigNum remaind)
 {
+	int flag = 0;
+	bigNum tmp1, tmp2;
+	init_big_int(result,0);
+	init_big_int(remaind, 0);
+	
+	if(is_nag(deDived))
+	{
+		inv_big_int(deDived, tmp1);
+		flag++;
+	}
+	else
+		copy(deDived, tmp1);
+
+	if(is_nag(theDiv))
+	{
+		inv_big_int(theDiv, tmp2);
+		flag++;
+	}
+	else
+		copy(theDiv, tmp2);
+
+	if(cmp_big_int(tmp1, tmp2) == 2)
+	{
+		copy(deDived,remaind);
+	}
+	
+	int m = 0;
+	int n = 0;
+
+	int i = BIG_LENGTH - 1;
+	int j = BIG_LENGTH - 1;
+	while(tmp1[i] == 0 )
+	{
+		m++;
+		i--;
+	}
+
+	while(tmp2[j] == 0)
+	{
+		n++;
+		j--;
+	}
+
+	int offset = n - m;
+	bigNum reg1, reg2;
+	copy(tmp1, reg1);
+	init_big_int(reg2, 0);
+	
+	while(offset >= 0)
+	{
+		if(offset == (n-m))
+		{
+			for(i = BIG_LENGTH - n + offset - 1; i >= offset; i-- )
+			{
+				reg2[i] = tmp2[i- offset];
+			}
+		}
+		else
+		{
+			for(i = offset; i < BIG_LENGTH - n + offset; i++)
+			{
+				reg2[i] = reg2[i + 1];
+			}
+			reg2[BIG_LENGTH - n + offset] = 0;
+		}
+		
+		while(cmp_big_int(reg1, reg2) != 2)
+		{
+			result[offset]++;
+			sub_big_int(reg1, reg2, reg1);
+		}
+		offset--; 
+		
+	}
+
+	if(flag == 1)
+		inv_big_int(result,result);
+	copy(reg1,remaind);
 	return 0;
 }
 
@@ -208,12 +286,13 @@ int div_big_int(bigNum deDived, bigNum theDiv, bigNum reslut)
 int main()
 {
 	bigNum a = {123,234};
-	bigNum b = {3};
-	bigNum c = {7};
+	bigNum b = {3,3};
+	bigNum c = {252,2,7};
 	bigNum d;
-	sub_big_int(b,c,d);
-	muti_big_int(d,a,c);
-	print_big_int(c);
+	//init_big_int(b,255);
+	inv_big_int(c,c);
+	div_big_int(c,b,d,a);
+	print_big_int(d);
 	//int d = cmp_big_int(c,b);
 
 	return 0;
